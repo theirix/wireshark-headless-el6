@@ -1,0 +1,64 @@
+diff --git a/configure.ac b/configure.ac
+index 97dd4a15a5..6891351b09 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -3086,6 +3086,11 @@ if test "x$have_lua" = "xyes" ; then
+ else
+ 	RPMBUILD_WITH_ARGS="$RPMBUILD_WITH_ARGS --without lua"
+ fi
++if test "x$enable_wireshark" = "xno" ; then
++	RPMBUILD_WITH_ARGS="$RPMBUILD_WITH_ARGS --without wireshark"
++else
++	RPMBUILD_WITH_ARGS="$RPMBUILD_WITH_ARGS --with wireshark"
++fi
+ AC_SUBST(RPMBUILD_WITH_ARGS)
+ 
+ dnl Save the cacheable configure results to config.cache before recursing
+diff --git a/packaging/rpm/SPECS/wireshark.spec.in b/packaging/rpm/SPECS/wireshark.spec.in
+index a6b9c84383..9993fdb817 100644
+--- a/packaging/rpm/SPECS/wireshark.spec.in
++++ b/packaging/rpm/SPECS/wireshark.spec.in
+@@ -7,6 +7,7 @@
+ %bcond_without	gtk2
+ %bcond_with	gtk3
+ %bcond_with	lua
++%bcond_without	wireshark
+ 
+ # Set these to 1 if you want to ensure your package includes support for them:
+ %global with_adns 0
+@@ -258,6 +259,11 @@ This package contains the GTK+ Wireshark GUI and desktop integration files.
+ %else
+   --without-gtk3 \
+ %endif
++%if %{with wireshark}
++  --enable-wireshark \
++%else
++  --disable-wireshark \
++%endif
+   --disable-warnings-as-errors
+ 
+ # Remove rpath.  It's prohibited in Fedora[1] and anyway we don't need it (and
+@@ -359,7 +365,9 @@ fi
+ %defattr(-,root,root)
+ %doc AUTHORS COPYING ChangeLog INSTALL INSTALL.configure NEWS README*
+ # Don't pick up any of the wireshark (GUI) binaries here
++%if %{with wireshark}
+ %exclude %{_bindir}/wireshark*
++%endif
+ %{_bindir}/*
+ 
+ # This generates a warning because dumpcap is listed twice. That's
+@@ -394,11 +402,13 @@ fi
+ %exclude %{_libdir}/*.la
+ %{_libdir}/wireshark
+ # Don't pick up the wireshark (GUI) man page
++%if %{with wireshark}
+ %exclude %{_mandir}/man1/wireshark.*
+ # Our RPMs use 'alternatives' to choose the Wireshark so it doesn't make sense
+ # to have 2 desktop entries: one for 'wireshark' (Qt or Gtk GUI, depending on
+ # configuration) and one for 'wireshark-gtk' (the Gtk GUI).
+ %exclude %{_datadir}/applications/wireshark-gtk.desktop
++%endif
+ %{_mandir}/man1/*
+ %{_mandir}/man4/*
+ %{_datadir}/wireshark
