@@ -8,3 +8,9 @@ before_install:
 script:
   - docker run --rm -v `pwd`:/srv:rw centos:6 /bin/bash /srv/build.sh
   - ls -l
+addons:
+  artifacts:
+    s3_region: "eu-west-1"
+    paths:
+      - $(ls wireshark-*.rpm | tr "\n" ":")
+    debug: true
